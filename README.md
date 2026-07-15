@@ -2,6 +2,12 @@
 
 Universal internal resource storage service for domain applications. The first version stores and serves images only.
 
+## Dependency Security
+
+NuGet audit is enabled for direct and transitive dependencies at `low` severity and above. Vulnerability warnings `NU1901` through `NU1904` are treated as build errors through `Directory.Build.props`.
+
+CI restores, builds, and reports vulnerable packages on every pull request and push to `main`.
+
 ## Architecture
 
 The solution follows DDD and Clean Architecture:
@@ -162,7 +168,7 @@ GET /health
 Create application API key:
 
 ```bash
-curl -X POST http://localhost:8080/internal/api-keys \
+curl -X POST http://localhost:32546/internal/api-keys \
   -H "X-Internal-Api-Key: change-me-internal-key" \
   -H "Content-Type: application/json" \
   -d '{"name":"extranet"}'
@@ -171,7 +177,7 @@ curl -X POST http://localhost:8080/internal/api-keys \
 Upload image:
 
 ```bash
-curl -X POST http://localhost:8080/resources/images \
+curl -X POST http://localhost:32546/resources/images \
   -H "X-Api-Key: <application-api-key>" \
   -F "file=@image.png;type=image/png"
 ```
@@ -179,14 +185,14 @@ curl -X POST http://localhost:8080/resources/images \
 Get metadata:
 
 ```bash
-curl http://localhost:8080/resources/<resource-id>/metadata \
+curl http://localhost:32546/resources/<resource-id>/metadata \
   -H "X-Api-Key: <application-api-key>"
 ```
 
 Get file bytes:
 
 ```bash
-curl http://localhost:8080/resources/<resource-id> \
+curl http://localhost:32546/resources/<resource-id> \
   -H "X-Api-Key: <application-api-key>" \
   --output image.png
 ```
@@ -194,14 +200,14 @@ curl http://localhost:8080/resources/<resource-id> \
 Soft-delete resource:
 
 ```bash
-curl -X DELETE http://localhost:8080/resources/<resource-id> \
+curl -X DELETE http://localhost:32546/resources/<resource-id> \
   -H "X-Api-Key: <application-api-key>"
 ```
 
 Update retention without restart:
 
 ```bash
-curl -X PUT http://localhost:8080/internal/system-variables/resource_soft_delete_retention_days \
+curl -X PUT http://localhost:32546/internal/system-variables/resource_soft_delete_retention_days \
   -H "X-Internal-Api-Key: change-me-internal-key" \
   -H "Content-Type: application/json" \
   -d '{"value":"14"}'

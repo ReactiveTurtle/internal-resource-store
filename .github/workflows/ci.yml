@@ -1,0 +1,29 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  build-and-audit:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Restore and audit dependencies
+        run: dotnet restore internal-resource-store.slnx
+
+      - name: Build
+        run: dotnet build internal-resource-store.slnx --no-restore --configuration Release
+
+      - name: Report vulnerable packages
+        run: dotnet list internal-resource-store.slnx package --vulnerable --include-transitive

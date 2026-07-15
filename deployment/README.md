@@ -25,7 +25,7 @@ Format:
   "ApiKeys": {
     "HashPepper": "strong-long-random-pepper"
   },
-  "PublicPort": 8080
+  "PublicPort": 32546
 }
 ```
 

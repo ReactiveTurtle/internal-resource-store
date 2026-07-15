@@ -21,7 +21,7 @@ services:
       ASPNETCORE_ENVIRONMENT: Production
       ASPNETCORE_URLS: http://+:8080
     ports:
-      - "${PUBLIC_PORT}:8080"
+      - "${PUBLIC_PORT:-32546}:8080"
     volumes:
       - internal_resource_store_files:/data/resources
       - ./.generated/appsettings.Production.json:/app/appsettings.Production.json:ro

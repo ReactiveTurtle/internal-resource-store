@@ -201,7 +201,7 @@ def required(path):
 connection_string = required("ConnectionStrings.Postgres")
 internal_api_key = required("InternalApi.Key")
 api_keys_hash_pepper = required("ApiKeys.HashPepper")
-public_port = str(secrets.get("PublicPort", 8080))
+public_port = str(secrets.get("PublicPort", 32546))
 
 def json_string_content(value):
     return json.dumps(str(value))[1:-1]

@@ -62,7 +62,7 @@ $connectionString = Get-RequiredValue $secrets "ConnectionStrings.Postgres"
 $internalApiKey = Get-RequiredValue $secrets "InternalApi.Key"
 $apiKeysHashPepper = Get-RequiredValue $secrets "ApiKeys.HashPepper"
 
-$publicPort = 8080
+$publicPort = 32546
 if ($secrets.PSObject.Properties.Name -contains "PublicPort" -and $null -ne $secrets.PublicPort) {
     $publicPort = [int]$secrets.PublicPort
 }

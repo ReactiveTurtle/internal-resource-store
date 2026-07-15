@@ -15,7 +15,7 @@ services:
       ApiKeys__HashPepper: ${API_KEYS_HASH_PEPPER}
       Database__ApplyMigrationsOnStartup: "true"
     ports:
-      - "8080:8080"
+      - "32546:8080"
     volumes:
       - internal_resource_store_files:/data/resources
 
