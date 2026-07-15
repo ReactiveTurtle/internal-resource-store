@@ -1,0 +1,39 @@
+services:
+  internal-resource-store-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: internal-resource-store-api
+    depends_on:
+      internal-resource-store-postgres:
+        condition: service_healthy
+    environment:
+      ASPNETCORE_URLS: http://+:8080
+      ConnectionStrings__Postgres: Host=internal-resource-store-postgres;Port=5432;Database=${POSTGRES_DB};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}
+      Storage__RootPath: /data/resources
+      InternalApi__Key: ${INTERNAL_API_KEY}
+      ApiKeys__HashPepper: ${API_KEYS_HASH_PEPPER}
+      Database__ApplyMigrationsOnStartup: "true"
+    ports:
+      - "8080:8080"
+    volumes:
+      - internal_resource_store_files:/data/resources
+
+  internal-resource-store-postgres:
+    image: postgres:17
+    container_name: internal-resource-store-postgres
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    volumes:
+      - internal_resource_store_postgres:/var/lib/postgresql/data
+
+volumes:
+  internal_resource_store_files:
+  internal_resource_store_postgres:

@@ -1,0 +1,10 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/InternalResourceStore.Api/InternalResourceStore.Api.csproj" />
+    <Project Path="src/InternalResourceStore.Application/InternalResourceStore.Application.csproj" />
+    <Project Path="src/InternalResourceStore.Configuration/InternalResourceStore.Configuration.csproj" />
+    <Project Path="src/InternalResourceStore.Domain/InternalResourceStore.Domain.csproj" />
+    <Project Path="src/InternalResourceStore.Infrastructure/InternalResourceStore.Infrastructure.csproj" />
+    <Project Path="src/InternalResourceStore.Migrations/InternalResourceStore.Migrations.csproj" />
+  </Folder>
+</Solution>

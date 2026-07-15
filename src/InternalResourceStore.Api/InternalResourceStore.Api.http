@@ -1,0 +1,6 @@
+@InternalResourceStore.Api_HostAddress = http://localhost:5139
+
+GET {{InternalResourceStore.Api_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

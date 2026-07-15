@@ -1,0 +1,15 @@
+using Microsoft.Extensions.DependencyInjection;
+
+namespace InternalResourceStore.Application;
+
+public static class DependencyInjection
+{
+    public static IServiceCollection AddApplication(this IServiceCollection services)
+    {
+        services.AddScoped<ApiKeyService>();
+        services.AddScoped<ResourceService>();
+        services.AddScoped<SystemVariableService>();
+        services.AddScoped<CleanupDeletedResourcesService>();
+        return services;
+    }
+}

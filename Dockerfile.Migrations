@@ -1,0 +1,18 @@
+FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
+WORKDIR /src
+
+COPY internal-resource-store.slnx ./
+COPY src/InternalResourceStore.Domain/InternalResourceStore.Domain.csproj src/InternalResourceStore.Domain/
+COPY src/InternalResourceStore.Application/InternalResourceStore.Application.csproj src/InternalResourceStore.Application/
+COPY src/InternalResourceStore.Configuration/InternalResourceStore.Configuration.csproj src/InternalResourceStore.Configuration/
+COPY src/InternalResourceStore.Infrastructure/InternalResourceStore.Infrastructure.csproj src/InternalResourceStore.Infrastructure/
+COPY src/InternalResourceStore.Migrations/InternalResourceStore.Migrations.csproj src/InternalResourceStore.Migrations/
+RUN dotnet restore src/InternalResourceStore.Migrations/InternalResourceStore.Migrations.csproj
+
+COPY . .
+RUN dotnet publish src/InternalResourceStore.Migrations/InternalResourceStore.Migrations.csproj -c Release -o /app/publish --no-restore
+
+FROM mcr.microsoft.com/dotnet/runtime:10.0 AS runtime
+WORKDIR /app
+COPY --from=build /app/publish .
+ENTRYPOINT ["dotnet", "InternalResourceStore.Migrations.dll"]

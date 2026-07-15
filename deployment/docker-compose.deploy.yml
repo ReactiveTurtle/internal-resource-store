@@ -1,0 +1,30 @@
+services:
+  internal-resource-store-migrations:
+    build:
+      context: ..
+      dockerfile: Dockerfile.Migrations
+    container_name: internal-resource-store-migrations
+    environment:
+      DOTNET_ENVIRONMENT: Production
+    volumes:
+      - ./.generated/appsettings.Production.json:/app/appsettings.Production.json:ro
+
+  internal-resource-store-api:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    container_name: internal-resource-store-api
+    depends_on:
+      internal-resource-store-migrations:
+        condition: service_completed_successfully
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ASPNETCORE_URLS: http://+:8080
+    ports:
+      - "${PUBLIC_PORT}:8080"
+    volumes:
+      - internal_resource_store_files:/data/resources
+      - ./.generated/appsettings.Production.json:/app/appsettings.Production.json:ro
+
+volumes:
+  internal_resource_store_files:
