@@ -6,12 +6,14 @@ public interface IApiKeyRepository
 {
     Task AddAsync(ApiKey apiKey, CancellationToken cancellationToken);
     Task<ApiKey?> GetByHashAsync(string keyHash, CancellationToken cancellationToken);
+    Task<IReadOnlyList<ApiKey>> GetAllAsync(CancellationToken cancellationToken);
 }
 
 public interface IResourceRepository
 {
     Task AddAsync(Resource resource, CancellationToken cancellationToken);
     Task<Resource?> GetByIdAsync(Guid id, CancellationToken cancellationToken);
+    Task<ResourcePage> GetActiveByOwnerAsync(string ownerApiKeyHash, int limit, int offset, CancellationToken cancellationToken);
     Task<IReadOnlyList<Resource>> GetResourcesReadyForPurgeAsync(DateTimeOffset purgeBefore, int take, CancellationToken cancellationToken);
 }
 
@@ -55,3 +57,4 @@ public interface IClock
 }
 
 public sealed record ProcessedImage(Stream Content, string MimeType, long SizeBytes, int Width, int Height, string Extension);
+public sealed record ResourcePage(IReadOnlyList<Resource> Items, int Total);

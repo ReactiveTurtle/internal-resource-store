@@ -31,38 +31,36 @@ Format:
 
 Postgres is not deployed as a container by the deployment compose file. The service receives only `ConnectionStrings:Postgres` from the external secrets file.
 
-## Deploy With sh
+## Deploy
 
 Local deploy from repository root:
 
-```sh
-sh ./deployment/deploy.sh \
+```text
+dotnet run deployment/deploy.cs -- \
   --target local \
   --secrets-file /opt/secrets/internal-resource-store.secrets.json
 ```
 
-From repository root:
-
-```sh
-sh ./deployment/deploy.sh --secrets-file /opt/secrets/internal-resource-store.secrets.json
-```
-
 Deploy without rebuilding the API image:
 
-```sh
-sh ./deployment/deploy.sh --secrets-file /opt/secrets/internal-resource-store.secrets.json --no-build
+```text
+dotnet run deployment/deploy.cs -- \
+  --secrets-file /opt/secrets/internal-resource-store.secrets.json \
+  --no-build
 ```
 
 Stop containers:
 
-```sh
-sh ./deployment/deploy.sh --secrets-file /opt/secrets/internal-resource-store.secrets.json --down
+```text
+dotnet run deployment/deploy.cs -- \
+  --secrets-file /opt/secrets/internal-resource-store.secrets.json \
+  --down
 ```
 
 Remote deploy over SSH:
 
-```sh
-sh ./deployment/deploy.sh \
+```text
+dotnet run deployment/deploy.cs -- \
   --target remote \
   --host deploy@example.com \
   --ssh-key ~/.ssh/id_ed25519 \
@@ -72,8 +70,8 @@ sh ./deployment/deploy.sh \
 
 Remote stop:
 
-```sh
-sh ./deployment/deploy.sh \
+```text
+dotnet run deployment/deploy.cs -- \
   --target remote \
   --host deploy@example.com \
   --ssh-key ~/.ssh/id_ed25519 \
@@ -84,8 +82,7 @@ sh ./deployment/deploy.sh \
 
 Remote mode requires on the local machine:
 
-- `sh`
-- `python3`
+- .NET 10 SDK
 - `ssh`
 - `tar`
 
@@ -97,35 +94,9 @@ Remote mode requires on the server:
 
 The `--ssh-key` value is the SSH identity file used by `ssh -i`. In typical SSH setups this is the private key file that matches a public key installed on the server.
 
-If the file has executable permissions:
-
-```sh
-./deployment/deploy.sh --secrets-file /opt/secrets/internal-resource-store.secrets.json
-```
-
-## Deploy With PowerShell
-
-From repository root:
-
-```powershell
-.\deployment\deploy.ps1 -SecretsFile "C:\secrets\internal-resource-store.secrets.json"
-```
-
-Deploy without rebuilding the API image:
-
-```powershell
-.\deployment\deploy.ps1 -SecretsFile "C:\secrets\internal-resource-store.secrets.json" -NoBuild
-```
-
-Stop containers:
-
-```powershell
-.\deployment\deploy.ps1 -SecretsFile "C:\secrets\internal-resource-store.secrets.json" -Down
-```
-
 ## How Secrets Are Applied
 
-The script reads the external secrets file and generates:
+The .NET deployment script reads the external secrets file and generates:
 
 - `deployment/.generated/appsettings.Production.json`
 - `deployment/.generated/deploy.env`

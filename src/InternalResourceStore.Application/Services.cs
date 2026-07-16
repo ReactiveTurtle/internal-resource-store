@@ -4,6 +4,11 @@ namespace InternalResourceStore.Application;
 
 public sealed class ApiKeyService(IApiKeyGenerator generator, IApiKeyHasher hasher, IApiKeyRepository repository, IUnitOfWork unitOfWork, IClock clock)
 {
+    public async Task<IReadOnlyList<ApiKeyDto>> GetAllAsync(CancellationToken cancellationToken) =>
+        (await repository.GetAllAsync(cancellationToken))
+            .Select(apiKey => new ApiKeyDto(apiKey.Id, apiKey.Name, apiKey.CreatedAt, apiKey.RevokedAt, apiKey.IsActive))
+            .ToArray();
+
     public async Task<Result<CreateApiKeyResult>> CreateAsync(CreateApiKeyCommand command, CancellationToken cancellationToken)
     {
         if (string.IsNullOrWhiteSpace(command.Name))
@@ -54,6 +59,23 @@ public sealed class ResourceService(
 
             return Result<UploadImageResourceResult>.Success(new UploadImageResourceResult(resource.Id, ToMetadata(resource)));
         }
+    }
+
+    public async Task<Result<ResourcePageDto>> GetResourcesAsync(
+        string apiKey,
+        int limit,
+        int offset,
+        CancellationToken cancellationToken)
+    {
+        var ownerHashResult = await GetActiveApiKeyHashAsync(apiKey, cancellationToken);
+        if (!ownerHashResult.IsSuccess) return Result<ResourcePageDto>.Failure(ownerHashResult.Error!);
+
+        var page = await resourceRepository.GetActiveByOwnerAsync(ownerHashResult.Value!, limit, offset, cancellationToken);
+        return Result<ResourcePageDto>.Success(new ResourcePageDto(
+            page.Items.Select(ToMetadata).ToArray(),
+            page.Total,
+            limit,
+            offset));
     }
 
     public async Task<Result<ResourceFileDto>> GetFileAsync(Guid resourceId, string apiKey, CancellationToken cancellationToken)

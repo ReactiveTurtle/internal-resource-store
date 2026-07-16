@@ -6,6 +6,7 @@ using InternalResourceStore.Infrastructure.SystemVariables;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi;
 using Microsoft.Extensions.Options;
+using Microsoft.AspNetCore.Mvc;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Configuration.AddResourceStoreAppSettings(builder.Environment, args);
@@ -35,6 +36,8 @@ builder.Services.AddSwaggerGen(options =>
         In = ParameterLocation.Header,
         Description = "Generated application API key for resource endpoints."
     });
+
+    options.DocumentFilter<SwaggerSecurityDocumentFilter>();
 });
 builder.Services.AddHealthChecks();
 builder.Services.AddResourceStoreConfiguration(builder.Configuration);
@@ -58,6 +61,10 @@ app.MapPost("/internal/api-keys", CreateApiKey)
 .WithTags("Internal")
 .WithName(nameof(CreateApiKey));
 
+app.MapGet("/internal/api-keys", GetApiKeys)
+.WithTags("Internal")
+.WithName(nameof(GetApiKeys));
+
 app.MapGet("/internal/system-variables", GetSystemVariables)
 .WithTags("Internal")
 .WithName(nameof(GetSystemVariables));
@@ -69,7 +76,12 @@ app.MapPut("/internal/system-variables/{key}", UpdateSystemVariable)
 app.MapPost("/resources/images", UploadImageResource)
 .WithTags("Resources")
 .WithName(nameof(UploadImageResource))
-.Accepts<IFormFile>("multipart/form-data");
+.Accepts<UploadImageRequest>("multipart/form-data");
+
+app.MapGet("/resources", GetResources)
+.WithTags("Resources")
+.WithName(nameof(GetResources))
+.Produces<ResourcePageDto>();
 
 app.MapGet("/resources/{resourceId:guid}", GetResourceFile)
 .WithTags("Resources")
@@ -117,6 +129,18 @@ static async Task<IResult> CreateApiKey(
 
     var result = await service.CreateAsync(new CreateApiKeyCommand(body.Name), cancellationToken);
     return ToTypedHttpResult(result);
+}
+
+static async Task<IResult> GetApiKeys(
+    HttpRequest request,
+    IConfiguration configuration,
+    ApiKeyService service,
+    CancellationToken cancellationToken)
+{
+    var internalAuth = ValidateInternalApiKey(request, configuration);
+    if (internalAuth is not null) return internalAuth;
+
+    return Results.Ok(await service.GetAllAsync(cancellationToken));
 }
 
 static async Task<IResult> GetSystemVariables(
@@ -178,6 +202,31 @@ static async Task<IResult> UploadImageResource(
 
     await using var stream = file.OpenReadStream();
     var result = await service.UploadImageAsync(new UploadImageResourceCommand(apiKey, stream, mimeType), cancellationToken);
+    return ToTypedHttpResult(result);
+}
+
+static async Task<IResult> GetResources(
+    HttpRequest request,
+    ResourceService service,
+    CancellationToken cancellationToken,
+    [FromQuery] int limit = 20,
+    [FromQuery] int offset = 0)
+{
+    var apiKey = GetHeader(request, "X-Api-Key");
+    if (string.IsNullOrWhiteSpace(apiKey))
+        return Results.Unauthorized();
+
+    if (limit is < 1 or > 100)
+        return Results.BadRequest(new ErrorResponse("invalid_limit", "Limit must be an integer between 1 and 100."));
+
+    if (offset < 0)
+        return Results.BadRequest(new ErrorResponse("invalid_offset", "Offset must be a non-negative integer."));
+
+    var result = await service.GetResourcesAsync(
+        apiKey,
+        limit,
+        offset,
+        cancellationToken);
     return ToTypedHttpResult(result);
 }
 
@@ -268,5 +317,6 @@ static IResult ToHttpError(ApplicationError error) =>
     };
 
 public sealed record CreateApiKeyRequest(string Name);
+public sealed record UploadImageRequest(IFormFile File);
 public sealed record UpdateSystemVariableRequest(string Value);
 public sealed record ErrorResponse(string Code, string Message);

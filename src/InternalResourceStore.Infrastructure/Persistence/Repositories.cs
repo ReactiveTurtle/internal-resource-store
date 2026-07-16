@@ -11,6 +11,13 @@ public sealed class EfApiKeyRepository(InternalResourceStoreDbContext dbContext)
 
     public async Task<ApiKey?> GetByHashAsync(string keyHash, CancellationToken cancellationToken) =>
         await dbContext.ApiKeys.FirstOrDefaultAsync(x => x.KeyHash == keyHash, cancellationToken);
+
+    public async Task<IReadOnlyList<ApiKey>> GetAllAsync(CancellationToken cancellationToken) =>
+        await dbContext.ApiKeys
+            .AsNoTracking()
+            .OrderBy(x => x.Name)
+            .ThenBy(x => x.CreatedAt)
+            .ToListAsync(cancellationToken);
 }
 
 public sealed class EfResourceRepository(InternalResourceStoreDbContext dbContext) : IResourceRepository
@@ -20,6 +27,30 @@ public sealed class EfResourceRepository(InternalResourceStoreDbContext dbContex
 
     public async Task<Resource?> GetByIdAsync(Guid id, CancellationToken cancellationToken) =>
         await dbContext.Resources.FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
+
+    public async Task<ResourcePage> GetActiveByOwnerAsync(
+        string ownerApiKeyHash,
+        int limit,
+        int offset,
+        CancellationToken cancellationToken)
+    {
+        var query = dbContext.Resources
+            .AsNoTracking()
+            .Where(x =>
+                x.OwnerApiKeyHash == ownerApiKeyHash &&
+                x.DeletedAt == null &&
+                x.PurgedAt == null);
+
+        var total = await query.CountAsync(cancellationToken);
+        var items = await query
+            .OrderByDescending(x => x.CreatedAt)
+            .ThenBy(x => x.Id)
+            .Skip(offset)
+            .Take(limit)
+            .ToListAsync(cancellationToken);
+
+        return new ResourcePage(items, total);
+    }
 
     public async Task<IReadOnlyList<Resource>> GetResourcesReadyForPurgeAsync(DateTimeOffset purgeBefore, int take, CancellationToken cancellationToken) =>
         await dbContext.Resources

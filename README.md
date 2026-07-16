@@ -121,14 +121,14 @@ Deployment applies EF Core migrations through a separate executable program/cont
 
 For deployment with secrets stored outside the repository, use:
 
-```sh
-sh ./deployment/deploy.sh --secrets-file /opt/secrets/internal-resource-store.secrets.json
+```text
+dotnet run deployment/deploy.cs -- --secrets-file /opt/secrets/internal-resource-store.secrets.json
 ```
 
 Remote deployment over SSH:
 
-```sh
-sh ./deployment/deploy.sh \
+```text
+dotnet run deployment/deploy.cs -- \
   --target remote \
   --host deploy@example.com \
   --ssh-key ~/.ssh/id_ed25519 \
@@ -144,6 +144,7 @@ Internal administration:
 
 ```text
 POST /internal/api-keys
+GET  /internal/api-keys
 GET  /internal/system-variables
 PUT  /internal/system-variables/{key}
 ```
@@ -152,6 +153,7 @@ Resources:
 
 ```text
 POST   /resources/images
+GET    /resources?limit=20&offset=0
 GET    /resources/{resourceId}
 GET    /resources/{resourceId}/metadata
 DELETE /resources/{resourceId}
